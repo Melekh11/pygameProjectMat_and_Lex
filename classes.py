@@ -158,10 +158,6 @@ class Cowboy(It):
 
 
 
-
-
-
-
 class Fild:
     def __init__(self, filename):
         self.map = pytmx.load_pygame(f"{MAPS_DIR}/{filename}", )
