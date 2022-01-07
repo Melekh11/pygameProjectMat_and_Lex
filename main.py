@@ -12,49 +12,92 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, 'n'), level_map))
 
 
+def find_cell(x, y):
+    p_y = y // cell_size
+    p_x = x // cell_size
+    return (p_x, p_y)
 
-tile_w, tile_h = 40, 40
-board_w, board_h = 25, 20
-size = w, h = tile_w * board_w, tile_h * board_h
-pygame.init()
-game_screen = pygame.display.set_mode(size)
-pygame.display.set_caption('A little farm')
+def find_hero(x, y, animals_map):
+    return animals_map[y][x]
+
+def return_hero(x, y, group):
+    for i in group:
+        if i.rect.x // cell_size == x and i.rect.y // cell_size == y:
+            return i
+    return None
 
 
-MAPS_DIR = "map"
-PIC_DIR = "pictures"
-cell_size = 40
+def spam_animals(animals_map):
+    for i in range(len(animals_map)):
+        for j in range(len(animals_map[i])):
+            if find_hero(j, i, animals_map) == "s":
+                Ship(j, i, ships)
+            elif find_hero(j, i, animals_map) == "w":
+                Wolf(j, i, wolfs)
+            elif find_hero(j, i, animals_map) == "d":
+                Dog(j, i, dogs)
+            elif find_hero(j, i, animals_map) == "c":
+                Cowboy(j, i, cowboys)
 
 
 def main():
+    hero_chosen = None
+    is_chosen = False
+    x_chosen = None
+    y_chosen = None
+
     fild = Fild("final_fild.tmx")
     clock = pygame.time.Clock()
     running = True
     fps = 30
-    # ship = Ship(6, 17, ships)
-    # wolf = Wolf(3, 3, wolfs)
-    # dog = Dog(15, 15, dogs)
-    # cowboy = Cowboy(6, 6, cowboys)
+    animals_map_start = load_level("heroes.txt")
+    spam_animals(animals_map_start)
     while running:
+        animals_map = animals_map_start
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = find_cell(event.pos[0], event.pos[1])
+                if hero_chosen == None or find_hero(x, y, animals_map) == "c" or find_hero(x, y, animals_map) == "d":
+                    if find_hero(x, y, animals_map) == "c":
+                        hero_chosen = return_hero(x, y, cowboys)
+                        is_chosen = True
+                        x_chosen = x
+                        y_chosen = y
+                        print(1)
+                    elif find_hero(x, y, animals_map) == "d":
+                        hero_chosen = return_hero(x, y, dogs)
+                        is_chosen = True
+                        x_chosen = x
+                        y_chosen = y
+                        print(1)
+                else:
+                    if abs(x - x_chosen) >= 2 or abs(y - y_chosen) >= 2:
+                        print(10)
+                        is_chosen = False
+                        x_chosen = None
+                        y_chosen = None
+                    else:
+                        if return_hero(x, y, animals) == None:
+                            print(5)
+                            hero_chosen.move(x, y, x_chosen, y_chosen)
+                            if hero_chosen.count <= 0:
+                                is_chosen = False
+                                x_chosen = None
+                                y_chosen = None
+                                hero_chosen = None
+                            else:
+                                x_chosen = x
+                                y_chosen = y
+                        else:
+                            print("!!")
+                print(is_chosen)
+                print('')
+
         fild.render(game_screen)
-        animals_map = load_level("heroes.txt")
-        for i in range(len(animals_map)):
-            for j in range(len(animals_map[i])):
-                if animals_map[i][j] == "s":
-                    Ship(j, i, ships)
-                elif animals_map[i][j] == "w":
-                    Wolf(j, i, wolfs)
-                elif animals_map[i][j] == "d":
-                    Dog(j, i, dogs)
-                elif animals_map[i][j] == "c":
-                    Cowboy(j, i, cowboys)
         animals.draw(game_screen)
         cowboys.draw(game_screen)
-        animals.update(event)
-        cowboys.update(event)
         clock.tick(fps)
         pygame.display.flip()
     pygame.quit()
