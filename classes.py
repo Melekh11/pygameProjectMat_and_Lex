@@ -78,35 +78,6 @@ class It(pygame.sprite.Sprite):
                 self.rect = self.rect.move(0, move)
 
 
-        # with open("heroes.txt", 'w', encoding="utf-8") as file:
-        #     file.write()
-
-    # def update(self, event, move=cell_size): nncnnnsssssnnnnnnnnnndnnn\n
-    #     pass
-        # if self.count > 0:
-        #     self.count -= 1
-        #     up = False
-        #     down = False
-        #     left = False
-        #     right = False
-        #     if event.type == pygame.KEYDOWN:
-        #         if event.key == pygame.K_LEFT:
-        #             left = True
-        #         if event.key == pygame.K_RIGHT:
-        #             right = True
-        #         if event.key == pygame.K_UP:
-        #             up = True
-        #         if event.key == pygame.K_DOWN:
-        #             down = True
-        #         if up == down:
-        #             up = False
-        #             down = False
-        #         if left == right:
-        #             left = False
-        #             right = False
-        #         move = (0, 0)
-
-
 class Ship(It):
     def __init__(self, x, y, *group, image_name="ship.png"):
         super().__init__(x, y, image_name, *group)
@@ -128,7 +99,9 @@ class Dog(It):
         self.add(animals)
 
     def move(self, x, y, x_ch, y_ch):
-        if self.count > 0:
+        with open("saved_map.txt", "r", encoding="utf-8") as file:
+            f = file.readlines()
+        if self.count > 0 and f[y][x] == "f":
             with open("heroes.txt", 'r', encoding="utf-8") as file:
                 f = file.readlines()
             f[y] = f[y][:x] + "d" + f[y][x + 1:]
@@ -148,7 +121,9 @@ class Cowboy(It):
 
 
     def move(self, x, y, x_ch, y_ch):
-        if self.count > 0:
+        with open("saved_map.txt", "r", encoding="utf-8") as file:
+            f = file.readlines()
+        if self.count > 0 and f[y][x] == "f":
             with open("heroes.txt", 'r', encoding="utf-8") as file:
                 f = file.readlines()
             f[y] = f[y][:x] + "c" + f[y][x+1:]

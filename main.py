@@ -1,7 +1,3 @@
-import pygame
-import pytmx
-import os
-import sys
 from classes import *
 
 
@@ -17,8 +13,10 @@ def find_cell(x, y):
     p_x = x // cell_size
     return (p_x, p_y)
 
+
 def find_hero(x, y, animals_map):
     return animals_map[y][x]
+
 
 def return_hero(x, y, group):
     for i in group:
