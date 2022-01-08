@@ -64,12 +64,14 @@ def main():
                         x_chosen = x
                         y_chosen = y
                         print(1)
+                        print(hero_chosen.type)
                     elif find_hero(x, y, animals_map) == "d":
                         hero_chosen = return_hero(x, y, dogs)
                         is_chosen = True
                         x_chosen = x
                         y_chosen = y
                         print(1)
+                        print(hero_chosen.type)
                 else:
                     if abs(x - x_chosen) >= 2 or abs(y - y_chosen) >= 2:
                         print(10)
@@ -86,8 +88,11 @@ def main():
                                 y_chosen = None
                                 hero_chosen = None
                             else:
-                                x_chosen = x
-                                y_chosen = y
+                                with open("saved_map.txt", "r", encoding="utf-8") as file:
+                                    f = file.readlines()
+                                if f[y][x] == "f":
+                                    x_chosen = x
+                                    y_chosen = y
                         else:
                             print("!!")
                 print(is_chosen)
