@@ -51,11 +51,11 @@ def main():
     animals_map_start = load_level("heroes.txt")
     spam_animals(animals_map_start)
     while running:
-        animals_map = animals_map_start
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
+                animals_map = load_level("heroes.txt")
                 x, y = find_cell(event.pos[0], event.pos[1])
                 if hero_chosen == None or find_hero(x, y, animals_map) == "c" or find_hero(x, y, animals_map) == "d":
                     if find_hero(x, y, animals_map) == "c":
@@ -63,15 +63,15 @@ def main():
                         is_chosen = True
                         x_chosen = x
                         y_chosen = y
-                        print(1)
-                        print(hero_chosen.type)
+                        print(1, find_hero(x, y, animals_map) == "c")
+                        # print(hero_chosen.type)
                     elif find_hero(x, y, animals_map) == "d":
                         hero_chosen = return_hero(x, y, dogs)
                         is_chosen = True
                         x_chosen = x
                         y_chosen = y
                         print(1)
-                        print(hero_chosen.type)
+                        # print(hero_chosen.type)
                 else:
                     if abs(x - x_chosen) >= 2 or abs(y - y_chosen) >= 2:
                         print(10)
@@ -87,6 +87,7 @@ def main():
                                 x_chosen = None
                                 y_chosen = None
                                 hero_chosen = None
+                                print(13)
                             else:
                                 with open("saved_map.txt", "r", encoding="utf-8") as file:
                                     f = file.readlines()
@@ -96,6 +97,8 @@ def main():
                         else:
                             print("!!")
                 print(is_chosen)
+                if is_chosen:
+                    print(hero_chosen.type)
                 print('')
 
         fild.render(game_screen)
