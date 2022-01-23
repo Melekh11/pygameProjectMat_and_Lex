@@ -1,6 +1,13 @@
 from PIL import Image
 
 
+def hide_pic(name1, name2):
+    im_rgb = Image.open(name1)
+    im_rgba = im_rgb.copy()
+    im_rgba.putalpha(128)
+    im_rgba.save(f'pictures/{name2}.png')
+
+
 def reshpe(name1, name2, size_x, size_y):
     im = Image.open(name1)
     im2 = im.resize((size_x, size_y))
@@ -12,4 +19,4 @@ def crop(name1, name2, x_l, y_u, x_r, y_l):
     im2.save(name2)
 
 
-# reshpe('pictures/gardenWall_1.png', "pictures/gardenWall_2.png", 160, 120)
+hide_pic("pictures/dog.png", "dog_hide")

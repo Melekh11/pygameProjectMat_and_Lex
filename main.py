@@ -1,44 +1,8 @@
 from classes import *
 
-
-def load_level(filename):
-    with open(filename, 'r') as mapFile:
-        level_map = [line.strip() for line in mapFile]
-    max_width = max(map(len, level_map))
-    return list(map(lambda x: x.ljust(max_width, 'n'), level_map))
-
-
-def find_cell(x, y):
-    p_y = y // cell_size
-    p_x = x // cell_size
-    return (p_x, p_y)
-
-
-def find_hero(x, y, animals_map):
-    return animals_map[y][x]
-
-
-def return_hero(x, y, group):
-    for i in group:
-        if i.rect.x // cell_size == x and i.rect.y // cell_size == y:
-            return i
-    return None
-
-
-def spam_animals(animals_map):
-    for i in range(len(animals_map)):
-        for j in range(len(animals_map[i])):
-            if find_hero(j, i, animals_map) == "s":
-                Ship(j, i, ships)
-            elif find_hero(j, i, animals_map) == "w":
-                Wolf(j, i, wolfs)
-            elif find_hero(j, i, animals_map) == "d":
-                Dog(j, i, dogs)
-            elif find_hero(j, i, animals_map) == "c":
-                Cowboy(j, i, cowboys)
-
-
 def main():
+    game_score = 0
+    count_turns = 0
     hero_chosen = None
     is_chosen = False
     x_chosen = None
@@ -49,13 +13,18 @@ def main():
     running = True
     fps = 30
     animals_map_start = load_level("heroes.txt")
+    # print(animals_map_start)
     spam_animals(animals_map_start)
+    # with open("heroes.txt", "r", encoding="utf-8") as file:
+    #     f_start = file.readlines()
     while running:
         for event in pygame.event.get():
+            # manager.process_events(event)
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 animals_map = load_level("heroes.txt")
+                lvl = load_level('saved_map.txt')
                 x, y = find_cell(event.pos[0], event.pos[1])
                 if hero_chosen == None or find_hero(x, y, animals_map) == "c" or find_hero(x, y, animals_map) == "d":
                     if find_hero(x, y, animals_map) == "c":
@@ -63,51 +32,110 @@ def main():
                         is_chosen = True
                         x_chosen = x
                         y_chosen = y
-                        print(1, find_hero(x, y, animals_map) == "c")
+                        # print(1, find_hero(x, y, animals_map) == "c")
                         # print(hero_chosen.type)
                     elif find_hero(x, y, animals_map) == "d":
                         hero_chosen = return_hero(x, y, dogs)
                         is_chosen = True
                         x_chosen = x
                         y_chosen = y
-                        print(1)
+                        # print(1)
                         # print(hero_chosen.type)
                 else:
-                    if abs(x - x_chosen) >= 2 or abs(y - y_chosen) >= 2:
-                        print(10)
-                        is_chosen = False
-                        x_chosen = None
-                        y_chosen = None
-                    else:
-                        if return_hero(x, y, animals) == None:
-                            print(5)
-                            hero_chosen.move(x, y, x_chosen, y_chosen)
-                            if hero_chosen.count <= 0:
-                                is_chosen = False
-                                x_chosen = None
-                                y_chosen = None
-                                hero_chosen = None
-                                print(13)
-                            else:
-                                with open("saved_map.txt", "r", encoding="utf-8") as file:
-                                    f = file.readlines()
-                                if f[y][x] == "f":
-                                    x_chosen = x
-                                    y_chosen = y
+                    if x_chosen != None:
+                        if abs(x - x_chosen) >= 2 or abs(y - y_chosen) >= 2:
+                            print(10)
+                            is_chosen = False
+                            x_chosen = None
+                            y_chosen = None
                         else:
-                            print("!!")
-                print(is_chosen)
-                if is_chosen:
-                    print(hero_chosen.type)
-                print('')
+                            if return_hero(x, y, animals) == None:
+                                print(5)
+                                hero_chosen.move(x, y, x_chosen, y_chosen)
+                                if hero_chosen.count <= 0:
+                                    is_chosen = False
+                                    x_chosen = None
+                                    y_chosen = None
+                                    hero_chosen = None
+                                    print(13)
+                                else:
+                                    f = load_level("saved_map.txt")
+                                    if x == hero_chosen.rect.x // cell_size and y == hero_chosen.rect.y//cell_size:
+                                        x_chosen = x
+                                        y_chosen = y
+                                    # if f[y][x] == "f" and hero_chosen.type == "c":
+                                    #     delete(x_chosen, y_chosen, load_level('heroes.txt'))
+                                    #     x_chosen = x
+                                    #     y_chosen = y
+                                    #     hero_chosen.rect.x, hero_chosen.rect.y = x_chosen*cell_size, y*cell_size
+                                    #     appear(x_chosen, y_chosen, 'c', load_level('heroes.txt'))
+                                    #
+                                    # elif (f[y][x] == "f" or f[y][x] == "h") and hero_chosen.type == "d":
+                                    #     delete(x_chosen, y_chosen, load_level('heroes.txt'))
+                                    #     x_chosen = x
+                                    #     y_chosen = y
+                                    #     hero_chosen.rect.x, hero_chosen.rect.y = x_chosen * cell_size, y * cell_size
+                                    #     appear(x_chosen, y_chosen, 'd', load_level('heroes.txt'))
 
+
+
+                            elif return_hero(x, y, animals).type == "s" and hero_chosen.type == "c" and lvl[y][x] == 'f':
+                                print(123)
+                                ship_punched = return_hero(x, y, ships)
+                                # print(ship_punched.rect.x//cell_size, x_chosen, "xxx")
+                                # print(ship_punched.rect.y//cell_size, y_chosen, "yyy")
+                                ship_punched.moveee([ship_punched.rect.x//cell_size - x_chosen, ship_punched.rect.y//cell_size-y_chosen])
+                                hero_chosen.count -= 1
+                            elif return_hero(x, y, animals).type == "w" and hero_chosen.type == "c":
+                                wolf_dead = return_hero(x, y, wolfs)
+                                wolf_dead.death()
+                                hero_chosen.count -= 1
+
+                            elif return_hero(x, y, animals).type == "w" and hero_chosen.type == "d":
+                                wolf_dead = return_hero(x, y, wolfs)
+                                wolf_dead.death()
+                                delete(hero_chosen.rect.x//cell_size, hero_chosen.rect.y//cell_size, load_level("heroes.txt"))
+                                appear(x, y, "d", load_level("heroes.txt"))
+                                hero_chosen.rect.x, hero_chosen.rect.y = x * cell_size, y * cell_size
+                                f = load_level("saved_map.txt")
+                                if f[y][x] == "f":
+                                    hero_chosen.image = load_image("dog.png")
+                                elif f[y][x] == "h":
+                                    hero_chosen.image = load_image("dog_hide.png")
+                                hero_chosen.count -= 1
+
+                # print(is_chosen)
+                # if is_chosen:
+                #     print(hero_chosen.type)
+                # print('')
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    last = pygame.time.get_ticks()
+                    cooldown = 500
+                    count_turns += 1
+                    print(count_turns, "count_turns")
+                    next_turn_sheep(event, count_turns)
+                    # time.sleep(1)
+
+                # elif event.key == pygame.K_/
+
+        # manager.update(clock.tick(fps) / 1000.0)
         fild.render(game_screen)
         animals.draw(game_screen)
         cowboys.draw(game_screen)
+        # manager.draw_ui(game_screen)
         clock.tick(fps)
         pygame.display.flip()
     pygame.quit()
 
+    with open("heroes.txt", "w", encoding="utf-8") as file:
+        for i in range(len(animals_map_start)):
+            if i != len(animals_map_start)-1:
+                file.write(animals_map_start[i]+'\n')
+            else:
+                file.write(animals_map_start[i])
+
 
 if __name__ == "__main__":
+    print(12345)
     main()
