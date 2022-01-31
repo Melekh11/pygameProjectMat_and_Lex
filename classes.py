@@ -5,21 +5,29 @@ import pytmx
 import sys
 import os
 import random
-print(2)
-print(1)
-lvl_difficult = 3
+import schedule
+# print(2)
+# print(1)
+
+count_turn = 0
+game_score = 0
 COUNT_SHIP = 1
 tile_w, tile_h = 40, 40
 board_w, board_h = 25, 20
 size = w, h = tile_w * board_w, tile_h * board_h
+lvl_difficult = "easy"
 MAPS_DIR = "map"
 PIC_DIR = "pictures"
 cell_size = 40
-print(-1)
+# print(-1)
 pygame.init()
-game_screen = pygame.display.set_mode((1000, 1000))
-pygame.display.set_caption('A little farm')
-print(-2)
+game_screen = pygame.display.set_mode((1000, 800))
+# pygame.display.set_caption('A little farm')
+# print(-2)
+
+sheep_sound = pygame.mixer.Sound("sounds/sheepSound.wav")
+wolf_sound = pygame.mixer.Sound("sounds/wolfSound.wav")
+dog_sound = pygame.mixer.Sound("sounds/dogSound.wav")
 
 animals = pygame.sprite.Group()
 ships = pygame.sprite.Group()
@@ -27,21 +35,72 @@ wolfs = pygame.sprite.Group()
 dogs = pygame.sprite.Group()
 cowboys = pygame.sprite.Group()
 good_gays = pygame.sprite.Group()
+game_over = pygame.sprite.Group()
 
-# manager = pygame_gui.UIManager(size)
-# switch = pygame_gui.elements.UIButton(
-#     relative_rect=pygame.Rect((400, 400), (100, 50)),
-#     text="Button",
-#     manager=manager
-# )
-# difficulty = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(
-#     options_list=['easy', 'medium', 'hard'],
-#     starting_option='easy',
-#     relative_rect=pygame.Rect((500, 500), (70, 30)),
-#     manager=manager
-# )
+manager = pygame_gui.UIManager(size)
+difficulty = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(
+    options_list=['easy', 'medium', 'hard'],
+    starting_option='easy',
+    relative_rect=pygame.Rect((610, 660), (70, 30)),
+    manager=manager
+)
+rules = pygame_gui.windows.UIMessageWindow(
+        rect=pygame.Rect((100, 100), (400, 400)),
+        html_message="Дорогой фермер! " +
+                     "Добро пожаловать, у нас очень много работы!!! " +
+                     "Вам нужно будет пасти 15 овец, не допустив того, чтобы они были съедены волками или убежали в лес навсегда. " +
+                     "Для этого нужно булет управлять гончими и ковбоями. " +
+                     "Для этого нажмите на них, потом на соеднюю клетку. " +
+                     "Количество ходов ваших героев ограничено. " +
+                     "Ковобой - 3 хода, гончая - 4 хода. " +
+                     "Ковбои не могут заходить в кусты (тёмно-зелёная зона травы), но могут сдвигать барашек, если походят на них. " +
+                     "Проживите 20 ходов и под конец игры загоните овец обратно в сохранную зону. " +
+                     "Иначе они умрут:(",
+        manager=manager,
+        window_title="rules")
+new_game = pygame_gui.elements.UIButton(
+                    relative_rect=pygame.Rect((400, 500), (100, 50)),
+                    text="start new game", manager=manager, visible=0
 
-print(123)
+                )
+
+
+def new_game_start():
+    global count_turn, game_score, new_game
+    count_turn = 0
+    game_score = 0
+    for i in game_over:
+        i.image = load_image("empty.png")
+    for i in animals:
+        i.death()
+    for i in cowboys:
+        i.death()
+    for i in game_over:
+        i.active = False
+    # new_game.visible = 0
+    map_new = load_level("lvl1.txt")
+    with open("heroes.txt", "w", encoding="utf-8") as file:
+        for i in range(len(map_new)):
+            if i != len(map_new) - 1:
+                file.write(map_new[i] + '\n')
+            else:
+                file.write(map_new[i])
+
+
+
+    # print("start_new")
+
+
+def select_lvl_difficukty(lvl, event):
+    if lvl == "easy":
+        schedule.every(7).seconds.do(next_turn_sheep, event)
+        schedule.every(5).seconds.do(next_turn_wolfs, event)
+    elif lvl == "medium":
+        schedule.every(6).seconds.do(next_turn_sheep, event)
+        schedule.every(4).seconds.do(next_turn_wolfs, event)
+    elif lvl == "hard":
+        schedule.every(5).seconds.do(next_turn_sheep, event)
+        schedule.every(4).seconds.do(next_turn_wolfs, event)
 
 
 def load_image(name, colorkey=None):
@@ -85,12 +144,15 @@ def return_hero(x, y, group):
     return None
 
 
+def ret_lvl_diff():
+    return lvl_difficult
+
 def spam_animals(animals_map):
     count = 0
     for i in range(len(animals_map)):
         for j in range(len(animals_map[i])):
             if find_hero(j, i, animals_map) == "s":
-                x = Ship(j, i, count, ships)
+                Ship(j, i, count, ships)
                 count += 1
                 # print(x.rect.x // cell_size, x.rect.y // cell_size, x.id)
             elif find_hero(j, i, animals_map) == "d":
@@ -102,17 +164,36 @@ def spam_animals(animals_map):
             if find_hero(j, i, animals_map) == "w":
                 Wolf(j, i, wolfs)
 
+def count_score_():
+    return game_score
 
+def count_turn_():
+    return count_turn
 
-def next_turn_sheep(event, count):
-    if event.key == pygame.K_LEFT:
+def next_turn_sheep(event):
+    global game_score, count_turn
+    count = 0
+    for i in ships:
+        if i.alive:
+            count += 1
+    if count > 0:
+        sheep_sound.play()
+        # print(count_turn)
+        count_turn += 1
+        count = count_turn
         ships.update(event)
         for i in cowboys:
             i.count = 3
         for i in dogs:
             i.count = 4
         if count % 10 == 0:
-            for i in range(lvl_difficult):
+            if lvl_difficult == "easy":
+                iter = 3
+            elif lvl_difficult == "medium":
+                iter = 4
+            else:
+                iter = 5
+            for i in range(iter):
                 f = load_level("heroes.txt")
                 coor = [0, 0]
                 line = random.randint(1, 3)
@@ -122,24 +203,55 @@ def next_turn_sheep(event, count):
                     else:
                         coor[0] = board_w - 2
                     coor[1] = random.randint(2, 9)
-                    # print(coor[0], coor[1], "!!!!!!")
                     while f[coor[1]][coor[0]] != "n":
-                        # print("xxx")
                         coor[1] = random.randint(2, 9)
                 elif line == 2:
                     coor[1] = 2
                     coor[0] = random.randint(1, 23)
-                    # print(coor[0], coor[1], "!!!!!!")
                     while f[coor[1]][coor[0]] != "n":
-                        # print("xxx")
                         coor[0] = random.randint(1, 24)
                 Wolf(coor[0], coor[1], wolfs)
+        for i in ships:
+            if i.alive:
+                game_score += 1
+        # print(game_score)
+    else:
+        count = 0
+        for i in game_over:
+            if i.active:
+                count += 1
+        if count == 0:
+            GameOver(game_over)
 
 
+
+def render_score(screen, count):
+    font = pygame.font.Font(None, 24)
+    text = font.render(f"очки: {count}", 1, (20, 20, 20))
+    screen.blit(text, (710, 740))
 
 
 def next_turn_wolfs(event):
-    wolfs.update(event)
+    count = 0
+    for i in ships:
+        if i.alive:
+            count += 1
+    if count > 0:
+        wolfs.update(event)
+        count1 = 0
+        for i in wolfs:
+            if i.alive:
+                count1 += 1
+        if count1 > 0:
+            # print("sound_wolf")
+            wolf_sound.play(maxtime=1000)
+    else:
+        count = 0
+        for i in game_over:
+            if i.active:
+                count += 1
+        if count == 0:
+            GameOver(game_over)
 
 
 def check_for_heroes(x, y, f):
@@ -185,6 +297,32 @@ def appear(x, y, smt, lvl):
                 file.write(lvl[i] + '\n')
             else:
                 file.write(lvl[i])
+
+
+class GameOver(pygame.sprite.Sprite):
+    image = load_image("gameover.png", -1)
+
+    def __init__(self, *group):
+        super().__init__(*group)
+        self.image = GameOver.image
+        self.rect = self.image.get_rect()
+        self.rect.x = -self.rect[2]
+        self.rect.y = 0
+        self.count = 0
+        self.active = True
+
+    def update(self, game_screen, *args):
+        if self.rect[0] + self.rect[2] <= cell_size*board_w:
+            self.rect = self.rect.move(10, 0)
+        else:
+            if self.count == 0:
+                # pygame.time.wait(1000)
+                # self.rect = self.rect.move(-10, 0)
+                font = pygame.font.Font(None, 100)
+                text = font.render(f"{game_score}", 1, (255, 20, 20))
+                game_screen.blit(text, (450, 470))
+                new_game.visible = 1
+
 
 
 class Fild:
@@ -308,6 +446,9 @@ class Ship(It):
             delete(x_ch, y_ch, f)
             self.image = load_image("empty.png")
             self.alive = False
+
+    def death(self):
+        super().death()
 
 
 class Wolf(It):
@@ -445,6 +586,7 @@ class Cowboy(It):
         self.add(good_gays)
 
     def move(self, x, y, x_ch, y_ch):
+        print("cowboy move!!")
         f = load_level("saved_map.txt")
         if self.count > 0 and f[y][x] == "f":
             f = load_level("heroes.txt")
@@ -455,4 +597,4 @@ class Cowboy(It):
             self.count -= 1
 
 
-print(111)
+# print(111)

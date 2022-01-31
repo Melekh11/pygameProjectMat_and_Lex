@@ -19,4 +19,5 @@ def crop(name1, name2, x_l, y_u, x_r, y_l):
     im2.save(name2)
 
 
-hide_pic("pictures/dog.png", "dog_hide")
+# hide_pic("pictures/dog.png", "dog_hide")
+reshpe("pictures/gameover.png", "pictures/gameover.png", 1000, 800)
