@@ -31,7 +31,7 @@ def main():
                 running = False
 
             if event.type == pygame.USEREVENT:
-                if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
+                if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
                     lvl = event.text
                     # schedule.cancel_job(schedule.every(7).seconds.do(next_turn_sheep, None))
                     schedule.clear()
@@ -47,7 +47,7 @@ def main():
                     else:
                         schedule.every(3).seconds.do(next_turn_sheep, None)
                         schedule.every(2).seconds.do(next_turn_wolfs, None)
-                if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     if new_game != None:
                         if event.ui_element == new_game:
                             schedule.clear()
